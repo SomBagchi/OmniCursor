@@ -4,7 +4,7 @@ A global hotkey-triggered AI chat application that provides visual context-aware
 
 ## Features
 
-- Trigger with Ctrl+Space from anywhere
+- Trigger with Cmd+Shift+Space from anywhere
 - Small, semi-transparent chat window
 - Visual context awareness - captures and analyzes your active window
 - Uses GPT-4o for rich visual understanding
