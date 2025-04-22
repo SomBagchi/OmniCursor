@@ -11,10 +11,19 @@ dependencies = [
     "mss>=9.0.1",
     "Pillow>=10.0.0",
     "pyobjc>=10.0.0",
+    "numpy>=1.24.0",
+    "pyobjc-framework-Quartz>=10.0.0"
 ]
 requires-python = ">=3.8"
 readme = "README.md"
 license = { text = "MIT" }
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0"
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -27,4 +36,9 @@ packages = ["src/ai_chat_assistant"]
 ai-chat = "ai_chat_assistant.__main__:main"
 
 [tool.uv]
-python = "3.12" 
+python = "3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src/ai_chat_assistant --cov-report=term-missing" 

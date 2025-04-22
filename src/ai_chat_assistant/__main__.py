@@ -33,6 +33,10 @@ class AIChatApp:
     def setup_openai(self):
         if not os.getenv('OPENAI_API_KEY'):
             raise ValueError("Please set OPENAI_API_KEY in your .env file")
+        
+        # Set up the event handler for AI responses
+        if hasattr(self, 'root'):
+            self.root.bind('<<AIResponse>>', self._handle_ai_response)
 
     def setup_hotkey_binding(self):
         print("Setting up hotkey binding...")
@@ -205,18 +209,40 @@ class AIChatApp:
                     })
                     messages[1]["content"].append({
                         "type": "text",
-                        "text": f"This is monitor {screenshot['monitor']} ({screenshot['width']}x{screenshot['height']})"
+                        "text": f"This is screen {screenshot['screen']} ({screenshot['width']}x{screenshot['height']})"
                     })
 
-            response = client.chat.completions.create(model="gpt-4o",
-            messages=messages,
-            max_tokens=300,
-            temperature=0.7)
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                max_tokens=300,
+                temperature=0.7
+            )
 
             ai_response = response.choices[0].message.content
-            self.add_message("AI", ai_response)
+            
+            # Use a thread-safe way to update the UI
+            if hasattr(self, 'root') and self.root.winfo_exists():
+                self.root.setvar('ai_response', ai_response)
+                self.root.event_generate('<<AIResponse>>', when='tail')
+                # Call the handler directly in test environment
+                if hasattr(self, '_handle_ai_response'):
+                    self._handle_ai_response(None)
+            return ai_response
         except Exception as e:
-            self.add_message("AI", f"Error: {str(e)}")
+            error_msg = f"Error: {str(e)}"
+            if hasattr(self, 'root') and self.root.winfo_exists():
+                self.root.setvar('ai_response', error_msg)
+                self.root.event_generate('<<AIResponse>>', when='tail')
+                # Call the handler directly in test environment
+                if hasattr(self, '_handle_ai_response'):
+                    self._handle_ai_response(None)
+            return error_msg
+
+    def _handle_ai_response(self, event):
+        """Handle AI responses in a thread-safe way"""
+        response = self.root.getvar('ai_response')
+        self.add_message("AI", response)
 
 def main():
     app = AIChatApp()
